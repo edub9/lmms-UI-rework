@@ -27,6 +27,7 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDesktopServices>
+#include <QDockWidget>
 #include <QDomElement>
 #include <QFileInfo>
 #include <QMdiArea>
@@ -156,7 +157,17 @@ MainWindow::MainWindow() :
 	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Normal, root_paths.join("*"), FileItem::defaultFilters(), title,
 		embed::getIconPixmap("computer").transformed(QTransform().rotate(90)), splitter, dirs_as_items));
 
-	m_workspace = new MovableQMdiArea(splitter);
+	// Host the existing editor workspace inside a dedicated QMainWindow.
+	// This provides Qt dock areas for the upcoming editor docks while keeping
+	// the current MDI workspace and its editor ownership unchanged.
+	auto dockHost = new QMainWindow(splitter);
+	dockHost->setObjectName("editorDockHost");
+	m_editorDockHost = dockHost;
+	dockHost->setDockNestingEnabled(true);
+	dockHost->setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks |
+		QMainWindow::GroupedDragging | QMainWindow::AnimatedDocks);
+	m_workspace = new MovableQMdiArea(dockHost);
+	dockHost->setCentralWidget(m_workspace);
 
 	// Load background
 	emit initProgress(tr("Loading background picture"));
@@ -175,6 +186,15 @@ MainWindow::MainWindow() :
 		m_workspace->setBackground( Qt::NoBrush );
 	}
 
+	// The tabbed workspace is an incremental alternative to floating MDI windows.
+	// It keeps the existing editor widgets and their models intact.
+	if (confMgr->value("ui", "tabbedworkspace").toInt())
+	{
+		m_workspace->setViewMode(QMdiArea::TabbedView);
+		m_workspace->setTabsClosable(false);
+		m_workspace->setTabsMovable(true);
+	}
+
 	m_workspace->setOption( QMdiArea::DontMaximizeSubWindowOnActivation );
 	m_workspace->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	m_workspace->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -185,7 +205,7 @@ MainWindow::MainWindow() :
 	// the splitter to the "left" side, or the first widgets in their list
 	if (sideBarOnRight)
 	{
-		splitter->insertWidget(0, m_workspace);
+		splitter->insertWidget(0, dockHost);
 		hbox->insertWidget(0, splitter);
 	}
 
@@ -493,7 +513,7 @@ void MainWindow::finalize()
 	addWindowedWidget(getGUI()->automationEditor());
 	addWindowedWidget(getGUI()->patternEditor());
 	addWindowedWidget(getGUI()->pianoRoll());
-	addWindowedWidget(getGUI()->songEditor());
+	m_songEditorSubWindow = addWindowedWidget(getGUI()->songEditor());
 
 	getGUI()->automationEditor()->parentWidget()->hide();
 	getGUI()->patternEditor()->parentWidget()->move(610, 5);
@@ -990,8 +1010,53 @@ void MainWindow::togglePatternEditorWin( bool forceShow )
 
 
 
+void MainWindow::setSongEditorDocked(bool enabled)
+{
+	if (!m_editorDockHost || !m_songEditorSubWindow) { return; }
+	if (enabled == (m_songEditorDock != nullptr)) { return; }
+
+	if (enabled)
+	{
+		// Move the existing SubWindow as one unit: the editor widget and its
+		// audio/project model are not recreated or replaced.
+		m_workspace->removeSubWindow(m_songEditorSubWindow);
+		auto dock = new QDockWidget(tr("Song Editor"), m_editorDockHost);
+		dock->setObjectName("songEditorDock");
+		dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+		dock->setFeatures(QDockWidget::DockWidgetMovable |
+			QDockWidget::DockWidgetFloatable);
+		dock->setWidget(m_songEditorSubWindow);
+		m_editorDockHost->addDockWidget(Qt::TopDockWidgetArea, dock);
+		m_songEditorDock = dock;
+		// restoreState requires the named dock to exist first.
+		const QByteArray savedState = QByteArray::fromBase64(
+			ConfigManager::inst()->value("ui", "editordockstate").toLatin1());
+		if (!savedState.isEmpty()) { m_editorDockHost->restoreState(savedState); }
+		m_songEditorSubWindow->show();
+		dock->show();
+	}
+	else
+	{
+		auto dock = m_songEditorDock;
+		m_songEditorDock = nullptr;
+		// Reparent before deleting the dock, to keep the editor alive.
+		m_songEditorSubWindow->setParent(m_workspace->viewport());
+		m_workspace->addSubWindow(m_songEditorSubWindow);
+		m_songEditorSubWindow->show();
+		m_editorDockHost->removeDockWidget(dock);
+		dock->deleteLater();
+	}
+}
+
+
 void MainWindow::toggleSongEditorWin()
 {
+	if (m_songEditorDock)
+	{
+		m_songEditorDock->setVisible(!m_songEditorDock->isVisible());
+		if (m_songEditorDock->isVisible()) { m_songEditorDock->raise(); }
+		return;
+	}
 	toggleWindow( getGUI()->songEditor() );
 }
 
@@ -1072,6 +1137,33 @@ void MainWindow::updateViewMenu()
 			      tr( "Project Notes" ) + "\tCtrl+7",
 			      this, SLOT(toggleProjectNotesWin())
 		);
+
+	m_viewMenu->addSeparator();
+
+	// First workspace-layout option: editor tabs inside the existing MDI area.
+	// A full split-pane dock host will be introduced in a later change.
+	auto tabbedWorkspaceAction = m_viewMenu->addAction(tr("Tabbed editor workspace"));
+	tabbedWorkspaceAction->setCheckable(true);
+	tabbedWorkspaceAction->setChecked(m_workspace->viewMode() == QMdiArea::TabbedView);
+	connect(tabbedWorkspaceAction, &QAction::toggled, this, [this](bool enabled)
+	{
+		m_workspace->setViewMode(enabled ? QMdiArea::TabbedView : QMdiArea::SubWindowView);
+		if (enabled)
+		{
+			m_workspace->setTabsClosable(false);
+			m_workspace->setTabsMovable(true);
+		}
+		ConfigManager::inst()->setValue("ui", "tabbedworkspace", QString::number(enabled));
+	});
+
+	// Experimental opt-in Song Editor docking; legacy MDI remains default.
+	auto songDockAction = m_viewMenu->addAction(tr("Experimental: Dock Song Editor"));
+	songDockAction->setCheckable(true);
+	songDockAction->setChecked(m_songEditorDock != nullptr);
+	connect(songDockAction, &QAction::toggled, this, [this](bool enabled)
+	{
+		setSongEditorDocked(enabled);
+	});
 
 	m_viewMenu->addSeparator();
 	
@@ -1239,6 +1331,14 @@ void MainWindow::closeEvent( QCloseEvent * _ce )
 {
 	if( mayChangeProject(true) )
 	{
+		// Save Qt dock geometry only after the user accepts closing the project.
+		// Stable dock object names will be required as editors are migrated.
+		if (m_editorDockHost)
+		{
+			ConfigManager::inst()->setValue("ui", "editordockstate",
+				QString::fromLatin1(m_editorDockHost->saveState().toBase64()));
+		}
+		_ce->accept();
 		// delete recovery file
 		if( ConfigManager::inst()->
 				value( "ui", "enableautosave" ).toInt() )
