@@ -34,6 +34,7 @@
 #include "ConfigManager.h"
 
 class QAction;
+class QDockWidget;
 class QDomElement;
 class QGridLayout;
 
@@ -215,6 +216,9 @@ private:
 
 	MovableQMdiArea * m_workspace;
 	QMainWindow * m_editorDockHost = nullptr;
+	QDockWidget * m_songEditorDock = nullptr;
+	SubWindow * m_songEditorSubWindow = nullptr;
+	void setSongEditorDocked(bool enabled);
 
 	QWidget * m_toolBar;
 	QGridLayout * m_toolBarLayout;
