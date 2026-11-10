@@ -1042,7 +1042,9 @@ void PianoRoll::drawNoteRect( QPainter & p, int x, int y,
 
 	if ( borders )
 	{
-		p.setPen( col );
+		// A brighter outline makes selected notes easier to distinguish on
+		// dark piano-roll themes without changing their MIDI properties.
+		p.setPen( n->selected() ? col.lighter( 145 ) : col );
 	}
 	else
 	{
