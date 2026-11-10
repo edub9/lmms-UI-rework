@@ -27,6 +27,7 @@
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDesktopServices>
+#include <QDockWidget>
 #include <QDomElement>
 #include <QFileInfo>
 #include <QMdiArea>
@@ -520,7 +521,7 @@ void MainWindow::finalize()
 	addWindowedWidget(getGUI()->automationEditor());
 	addWindowedWidget(getGUI()->patternEditor());
 	addWindowedWidget(getGUI()->pianoRoll());
-	addWindowedWidget(getGUI()->songEditor());
+	m_songEditorSubWindow = addWindowedWidget(getGUI()->songEditor());
 
 	getGUI()->automationEditor()->parentWidget()->hide();
 	getGUI()->patternEditor()->parentWidget()->move(610, 5);
@@ -1017,8 +1018,49 @@ void MainWindow::togglePatternEditorWin( bool forceShow )
 
 
 
+void MainWindow::setSongEditorDocked(bool enabled)
+{
+	if (!m_editorDockHost || !m_songEditorSubWindow) { return; }
+	if (enabled == (m_songEditorDock != nullptr)) { return; }
+
+	if (enabled)
+	{
+		// Move the existing SubWindow as one unit: the editor widget and its
+		// audio/project model are not recreated or replaced.
+		m_workspace->removeSubWindow(m_songEditorSubWindow);
+		auto dock = new QDockWidget(tr("Song Editor"), m_editorDockHost);
+		dock->setObjectName("songEditorDock");
+		dock->setAllowedAreas(Qt::AllDockWidgetAreas);
+		dock->setFeatures(QDockWidget::DockWidgetMovable |
+			QDockWidget::DockWidgetFloatable);
+		dock->setWidget(m_songEditorSubWindow);
+		m_editorDockHost->addDockWidget(Qt::TopDockWidgetArea, dock);
+		m_songEditorDock = dock;
+		m_songEditorSubWindow->show();
+		dock->show();
+	}
+	else
+	{
+		auto dock = m_songEditorDock;
+		m_songEditorDock = nullptr;
+		// Reparent before deleting the dock, to keep the editor alive.
+		m_songEditorSubWindow->setParent(m_workspace->viewport());
+		m_workspace->addSubWindow(m_songEditorSubWindow);
+		m_songEditorSubWindow->show();
+		m_editorDockHost->removeDockWidget(dock);
+		dock->deleteLater();
+	}
+}
+
+
 void MainWindow::toggleSongEditorWin()
 {
+	if (m_songEditorDock)
+	{
+		m_songEditorDock->setVisible(!m_songEditorDock->isVisible());
+		if (m_songEditorDock->isVisible()) { m_songEditorDock->raise(); }
+		return;
+	}
 	toggleWindow( getGUI()->songEditor() );
 }
 
@@ -1116,6 +1158,15 @@ void MainWindow::updateViewMenu()
 			m_workspace->setTabsMovable(true);
 		}
 		ConfigManager::inst()->setValue("ui", "tabbedworkspace", QString::number(enabled));
+	});
+
+	// Experimental opt-in Song Editor docking; legacy MDI remains default.
+	auto songDockAction = m_viewMenu->addAction(tr("Experimental: Dock Song Editor"));
+	songDockAction->setCheckable(true);
+	songDockAction->setChecked(m_songEditorDock != nullptr);
+	connect(songDockAction, &QAction::toggled, this, [this](bool enabled)
+	{
+		setSongEditorDocked(enabled);
 	});
 
 	m_viewMenu->addSeparator();
