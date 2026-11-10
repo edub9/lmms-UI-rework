@@ -168,14 +168,6 @@ MainWindow::MainWindow() :
 		QMainWindow::GroupedDragging | QMainWindow::AnimatedDocks);
 	m_workspace = new MovableQMdiArea(dockHost);
 	dockHost->setCentralWidget(m_workspace);
-	// Restore dock geometry only when an explicitly saved layout exists.
-	// This does not enable the unfinished docking mode by default.
-	const QByteArray savedDockState = QByteArray::fromBase64(
-		confMgr->value("ui", "editordockstate").toLatin1());
-	if (!savedDockState.isEmpty())
-	{
-		dockHost->restoreState(savedDockState);
-	}
 
 	// Load background
 	emit initProgress(tr("Loading background picture"));
@@ -1036,6 +1028,10 @@ void MainWindow::setSongEditorDocked(bool enabled)
 		dock->setWidget(m_songEditorSubWindow);
 		m_editorDockHost->addDockWidget(Qt::TopDockWidgetArea, dock);
 		m_songEditorDock = dock;
+		// restoreState requires the named dock to exist first.
+		const QByteArray savedState = QByteArray::fromBase64(
+			ConfigManager::inst()->value("ui", "editordockstate").toLatin1());
+		if (!savedState.isEmpty()) { m_editorDockHost->restoreState(savedState); }
 		m_songEditorSubWindow->show();
 		dock->show();
 	}
