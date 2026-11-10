@@ -175,6 +175,15 @@ MainWindow::MainWindow() :
 		m_workspace->setBackground( Qt::NoBrush );
 	}
 
+	// The tabbed workspace is an incremental alternative to floating MDI windows.
+	// It keeps the existing editor widgets and their models intact.
+	if (confMgr->value("ui", "tabbedworkspace").toInt())
+	{
+		m_workspace->setViewMode(QMdiArea::TabbedView);
+		m_workspace->setTabsClosable(false);
+		m_workspace->setTabsMovable(true);
+	}
+
 	m_workspace->setOption( QMdiArea::DontMaximizeSubWindowOnActivation );
 	m_workspace->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	m_workspace->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -1072,6 +1081,24 @@ void MainWindow::updateViewMenu()
 			      tr( "Project Notes" ) + "\tCtrl+7",
 			      this, SLOT(toggleProjectNotesWin())
 		);
+
+	m_viewMenu->addSeparator();
+
+	// First workspace-layout option: editor tabs inside the existing MDI area.
+	// A full split-pane dock host will be introduced in a later change.
+	auto tabbedWorkspaceAction = m_viewMenu->addAction(tr("Tabbed editor workspace"));
+	tabbedWorkspaceAction->setCheckable(true);
+	tabbedWorkspaceAction->setChecked(m_workspace->viewMode() == QMdiArea::TabbedView);
+	connect(tabbedWorkspaceAction, &QAction::toggled, this, [this](bool enabled)
+	{
+		m_workspace->setViewMode(enabled ? QMdiArea::TabbedView : QMdiArea::SubWindowView);
+		if (enabled)
+		{
+			m_workspace->setTabsClosable(false);
+			m_workspace->setTabsMovable(true);
+		}
+		ConfigManager::inst()->setValue("ui", "tabbedworkspace", QString::number(enabled));
+	});
 
 	m_viewMenu->addSeparator();
 	
