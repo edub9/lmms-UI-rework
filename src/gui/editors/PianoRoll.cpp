@@ -3501,7 +3501,8 @@ void PianoRoll::paintEvent(QPaintEvent * pe )
 			const int kh = keyHeight(key);
 			const int kw = keyWidth(key);
 			// set key colors
-			p.setPen(QColor(0, 0, 0));
+			// Use the theme's grid-line color for key outlines instead of pure black.
+			p.setPen(m_lineColor);
 			switch (prKeyOrder[keyCode])
 			{
 			case KeyType::WhiteSmall:
@@ -3555,6 +3556,14 @@ void PianoRoll::paintEvent(QPaintEvent * pe )
 			const int y
 		)
 		{
+			// Subtle shading distinguishes black-key rows on the MIDI grid.
+			// This is visual only; note coordinates and editing remain unchanged.
+			if (!Piano::isWhiteKey(key))
+			{
+				p.fillRect(m_whiteKeyWidth + 1, y - m_keyLineHeight + 1,
+					width() - m_whiteKeyWidth - 1, m_keyLineHeight - 1,
+					QColor(48, 72, 104, 24));
+			}
 			if (static_cast<Key>(key % KeysPerOctave) == Key::C) { p.setPen(m_beatLineColor); }
 			else { p.setPen(m_lineColor); }
 			p.drawLine(m_whiteKeyWidth, y, width(), y);
