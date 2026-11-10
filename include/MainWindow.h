@@ -214,6 +214,7 @@ private:
 	};
 
 	MovableQMdiArea * m_workspace;
+	QMainWindow * m_editorDockHost = nullptr;
 
 	QWidget * m_toolBar;
 	QGridLayout * m_toolBarLayout;
