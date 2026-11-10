@@ -3817,10 +3817,12 @@ void PianoRoll::paintEvent(QPaintEvent * pe )
 			int editHandleTop = 0;
 			if( m_noteEditMode == NoteEditMode::Volume )
 			{
+				// Keep velocity handles readable against the dark controller lane.
+				// Retain volume-dependent brightness and highlight selected notes.
 				QColor color = m_barColor.lighter(30 + (note->getVolume() * 90 / MaxVolume));
 				if( note->selected() )
 				{
-					color = m_selectedNoteColor;
+					color = m_selectedNoteColor.lighter(135);
 				}
 				p.setPen( QPen( color, NOTE_EDIT_LINE_WIDTH ) );
 
