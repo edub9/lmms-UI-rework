@@ -161,11 +161,20 @@ MainWindow::MainWindow() :
 	// the current MDI workspace and its editor ownership unchanged.
 	auto dockHost = new QMainWindow(splitter);
 	dockHost->setObjectName("editorDockHost");
+	m_editorDockHost = dockHost;
 	dockHost->setDockNestingEnabled(true);
 	dockHost->setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks |
 		QMainWindow::GroupedDragging | QMainWindow::AnimatedDocks);
 	m_workspace = new MovableQMdiArea(dockHost);
 	dockHost->setCentralWidget(m_workspace);
+	// Restore dock geometry only when an explicitly saved layout exists.
+	// This does not enable the unfinished docking mode by default.
+	const QByteArray savedDockState = QByteArray::fromBase64(
+		confMgr->value("ui", "editordockstate").toLatin1());
+	if (!savedDockState.isEmpty())
+	{
+		dockHost->restoreState(savedDockState);
+	}
 
 	// Load background
 	emit initProgress(tr("Loading background picture"));
@@ -1275,6 +1284,14 @@ void MainWindow::closeEvent( QCloseEvent * _ce )
 {
 	if( mayChangeProject(true) )
 	{
+		// Save Qt dock geometry only after the user accepts closing the project.
+		// Stable dock object names will be required as editors are migrated.
+		if (m_editorDockHost)
+		{
+			ConfigManager::inst()->setValue("ui", "editordockstate",
+				QString::fromLatin1(m_editorDockHost->saveState().toBase64()));
+		}
+		_ce->accept();
 		// delete recovery file
 		if( ConfigManager::inst()->
 				value( "ui", "enableautosave" ).toInt() )
