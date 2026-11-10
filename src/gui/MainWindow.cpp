@@ -156,7 +156,16 @@ MainWindow::MainWindow() :
 	sideBar->appendTab(new FileBrowser(FileBrowser::Type::Normal, root_paths.join("*"), FileItem::defaultFilters(), title,
 		embed::getIconPixmap("computer").transformed(QTransform().rotate(90)), splitter, dirs_as_items));
 
-	m_workspace = new MovableQMdiArea(splitter);
+	// Host the existing editor workspace inside a dedicated QMainWindow.
+	// This provides Qt dock areas for the upcoming editor docks while keeping
+	// the current MDI workspace and its editor ownership unchanged.
+	auto dockHost = new QMainWindow(splitter);
+	dockHost->setObjectName("editorDockHost");
+	dockHost->setDockNestingEnabled(true);
+	dockHost->setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks |
+		QMainWindow::GroupedDragging | QMainWindow::AnimatedDocks);
+	m_workspace = new MovableQMdiArea(dockHost);
+	dockHost->setCentralWidget(m_workspace);
 
 	// Load background
 	emit initProgress(tr("Loading background picture"));
@@ -194,7 +203,7 @@ MainWindow::MainWindow() :
 	// the splitter to the "left" side, or the first widgets in their list
 	if (sideBarOnRight)
 	{
-		splitter->insertWidget(0, m_workspace);
+		splitter->insertWidget(0, dockHost);
 		hbox->insertWidget(0, splitter);
 	}
 
