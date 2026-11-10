@@ -30,6 +30,9 @@ IF(Git_FOUND AND NOT FORCE_VERSION)
 		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
 		TIMEOUT 10
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
+	# Git describe can return no tag (for example in a CI checkout).
+	# Only parse version components when a valid semantic version tag exists.
+	IF(GIT_TAG MATCHES "^v[0-9]+\\.[0-9]+\\.[0-9]+")
 	# Read: TAG_LIST = GIT_TAG.split("-")
 	STRING(REPLACE "-" ";" TAG_LIST "${GIT_TAG}")
 	# Read: TAG_LIST_LENGTH = TAG_LIST.length()
@@ -83,6 +86,8 @@ IF(Git_FOUND AND NOT FORCE_VERSION)
 		list(APPEND PRERELEASE_DATA "${VERSION_STAGE}")
 		list(APPEND PRERELEASE_DATA "${EXTRA_COMMITS}")
 		list(APPEND BUILD_METADATA "${COMMIT_HASH}")
+	ENDIF()
+
 	ENDIF()
 
 	# If there is any pre-release data, append it after a hyphen
