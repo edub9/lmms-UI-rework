@@ -29,6 +29,7 @@
 #include <QDir>
 #include <QLibrary>
 #include <QRegularExpression>
+#include <algorithm>
 #include <memory>
 #include "lmmsconfig.h"
 
@@ -69,6 +70,12 @@ void PluginFactory::setupSearchPaths()
 		}
 	};
 
+	// Prefer an explicitly selected development plugin directory.
+	if (const char* envPath = std::getenv("LMMS_PLUGIN_DIR"))
+	{
+		QDir::addSearchPath("plugins", envPath);
+	}
+
 	// We're either running LMMS installed on an Unixoid or we're running a
 	// portable version like we do on Windows.
 	// We want to find our plugins in both cases:
@@ -85,9 +92,6 @@ void PluginFactory::setupSearchPaths()
 #ifdef PLUGIN_DIR // We may also have received a relative directory via a define
 	addRelativeIfExists(PLUGIN_DIR);
 #endif
-	// Or via an environment variable:
-	if (const char* env_path = std::getenv("LMMS_PLUGIN_DIR"))
-		QDir::addSearchPath("plugins", env_path);
 
 	QDir::addSearchPath("plugins", ConfigManager::inst()->workingDir() + "plugins");
 }
@@ -147,24 +151,35 @@ void PluginFactory::discoverPlugins()
 	PluginInfoList pluginInfos;
 	m_pluginByExt.clear();
 
+	QList<QFileInfo> orderedFiles;
 	QSet<QFileInfo> files;
 	for (const QString& searchPath : QDir::searchPaths("plugins"))
 	{
 		auto discoveredPluginList = QDir(searchPath).entryInfoList(nameFilters);
-		files.unite(QSet<QFileInfo>(discoveredPluginList.begin(), discoveredPluginList.end()));
+		for (const auto& file : discoveredPluginList)
+		{
+			if (!files.contains(file))
+			{
+				files.insert(file);
+				orderedFiles.append(file);
+			}
+		}
 	}
 
 	// Apply any plugin filters from environment LMMS_EXCLUDE_PLUGINS
 	filterPlugins(files);
+	orderedFiles.erase(std::remove_if(orderedFiles.begin(), orderedFiles.end(),
+		[&files](const QFileInfo& file) { return !files.contains(file); }), orderedFiles.end());
 
 	// Cheap dependency handling: zynaddsubfx needs ZynAddSubFxCore. By loading
 	// all libraries twice we ensure that libZynAddSubFxCore is found.
-	for (const QFileInfo& file : files)
+	for (const QFileInfo& file : orderedFiles)
 	{
 		QLibrary(file.absoluteFilePath()).load();
 	}
 
-	for (const QFileInfo& file : files)
+	QSet<QString> registeredNames;
+	for (const QFileInfo& file : orderedFiles)
 	{
 		auto library = std::make_shared<QLibrary>(file.absoluteFilePath());
 		if (! library->load()) {
@@ -191,8 +206,9 @@ void PluginFactory::discoverPlugins()
 			}
 		}
 
-		if(pluginDescriptor)
+		if (pluginDescriptor && !registeredNames.contains(pluginDescriptor->name))
 		{
+			registeredNames.insert(pluginDescriptor->name);
 			PluginInfo info;
 			info.file = file;
 			info.library = library;
