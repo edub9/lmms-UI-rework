@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+workspace="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# Override these paths when using a separate build or staging directory.
+binary="${LMMS_DEV_BINARY:-$workspace/build/lmms}"
+theme="$workspace/data/themes/default"
+state="${LMMS_DEV_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/lmms-ui-rework}"
+config="$state/lmms.xml"
+
+if [[ ! -x "$binary" || ! -f "$theme/style.css" ]]; then
+    printf 'Build LMMS first or set LMMS_DEV_BINARY. Expected executable: %s\n' "$binary" >&2
+    exit 1
+fi
+
+if [[ ! -f "$config" ]]; then
+    mkdir -p -- "$state"
+    python3 - "$HOME/.lmmsrc.xml" "$config" "$theme" <<'PY'
+from pathlib import Path
+import sys
+import xml.etree.ElementTree as ET
+
+original, config, theme = sys.argv[1:]
+root = (
+    ET.parse(original).getroot()
+    if Path(original).is_file()
+    else ET.Element("lmms", configversion="3")
+)
+paths = root.find("paths")
+if paths is None:
+    paths = ET.SubElement(root, "paths")
+paths.set("theme", theme)
+with open(config, "xb") as output:
+    output.write(b'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE lmms-config-file>\n')
+    ET.ElementTree(root).write(output, encoding="utf-8")
+PY
+fi
+
+# The weak-linked Carla wrapper needs the system backend on its library path.
+if command -v carla >/dev/null 2>&1; then
+    carla_bin="$(command -v carla)"
+    carla_prefix="$(cd -- "$(dirname -- "$carla_bin")/.." && pwd)"
+    for carla_lib in "$carla_prefix/lib/carla" "$carla_prefix/lib64/carla"; do
+        if [[ -f "$carla_lib/libcarla_native-plugin.so" ]]; then
+            export LD_LIBRARY_PATH="$carla_lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+            if command -v wine >/dev/null 2>&1 && [[ -x "$carla_lib/carla-bridge-win64.exe" ]]; then
+                export XDG_CONFIG_HOME="$state/settings"
+                carla_settings="$XDG_CONFIG_HOME/falkTX/Carla2.conf"
+                mkdir -p -- "$(dirname -- "$carla_settings")"
+                if [[ ! -e "$carla_settings" ]]; then
+                    cat > "$carla_settings" <<'CARLA_SETTINGS'
+[Main]
+Experimental=true
+
+[Experimental]
+PluginBridges=true
+WineBridges=true
+CARLA_SETTINGS
+                fi
+            fi
+            break
+        fi
+    done
+fi
+
+# Prefer the workspace wrapper while keeping the other development plugins available.
+plugin_dir="${LMMS_DEV_PLUGIN_DIR:-$(dirname -- "$binary")/plugins}"
+if [[ -f "$plugin_dir/libcarlabase.so" ]]; then
+    export LMMS_PLUGIN_DIR="$plugin_dir"
+    export LD_LIBRARY_PATH="$plugin_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
+
+exec "$binary" --config "$config" "$@"
