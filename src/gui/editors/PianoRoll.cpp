@@ -1049,7 +1049,10 @@ void PianoRoll::drawNoteRect( QPainter & p, int x, int y,
 		p.setPen( Qt::NoPen );
 	}
 
-	p.drawRect( x, y, noteWidth, noteHeight );
+	// LMMS UI Rework: modern rounded MIDI note blocks.
+	const qreal cornerRadius = qMin(3.0, noteHeight / 4.0);
+	p.drawRoundedRect(QRectF(x, y, noteWidth, noteHeight),
+	                  cornerRadius, cornerRadius);
 
 	// Draw note key text
 	if (drawNoteName)
@@ -3498,31 +3501,32 @@ void PianoRoll::paintEvent(QPaintEvent * pe )
 			const int yt = yb - gridCorrection(key);
 			const int kh = keyHeight(key);
 			const int kw = keyWidth(key);
-			// set key colors
-			p.setPen(QColor(0, 0, 0));
+			// LMMS UI Rework: modern charcoal piano keyboard.
+			// Preserve existing key mapping and pressed-key behavior.
+			p.setPen(QColor(12, 17, 25));
 			switch (prKeyOrder[keyCode])
 			{
 			case KeyType::WhiteSmall:
 			case KeyType::WhiteBig:
 				if (mapped)
 				{
-					if (pressed) { p.setBrush(m_whiteKeyActiveBackground); }
-					else { p.setBrush(m_whiteKeyInactiveBackground); }
+					if (pressed) { p.setBrush(QColor(48, 112, 190)); }
+					else { p.setBrush(QColor(66, 73, 84)); }
 				}
 				else
 				{
-					p.setBrush(m_whiteKeyDisabledBackground);
+					p.setBrush(QColor(43, 48, 57));
 				}
 				break;
 			case KeyType::Black:
 				if (mapped)
 				{
-					if (pressed) { p.setBrush(m_blackKeyActiveBackground); }
-					else { p.setBrush(m_blackKeyInactiveBackground); }
+					if (pressed) { p.setBrush(QColor(35, 89, 161)); }
+					else { p.setBrush(QColor(22, 27, 36)); }
 				}
 				else
 				{
-					p.setBrush(m_blackKeyDisabledBackground);
+					p.setBrush(QColor(17, 21, 28));
 				}
 			}
 			// draw key
@@ -3539,9 +3543,13 @@ void PianoRoll::paintEvent(QPaintEvent * pe )
 					boundingRect.width(),
 					boundingRect.height()
 				);
-				p.setPen(pressed ? m_whiteKeyActiveTextShadow : m_whiteKeyInactiveTextShadow);
+				// LMMS UI Rework: high-contrast note and octave labels.
+				const bool isOctaveLabel = static_cast<Key>(keyCode) == Key::C;
+				p.setPen(QColor(12, 17, 25, 180));
 				p.drawText(textRect.adjusted(0, 1, 1, 0), Qt::AlignRight | Qt::AlignHCenter, noteString);
-				p.setPen(pressed ? m_whiteKeyActiveTextColor : m_whiteKeyInactiveTextColor);
+				p.setPen(pressed ? QColor(225, 240, 255) :
+				         isOctaveLabel ? QColor(125, 185, 245) :
+				                         QColor(190, 198, 210));
 				// if (static_cast<Key>(keyCode) == Key::C) { p.setPen(textColor()); }
 				// else { p.setPen(textColorLight()); }
 				p.drawText(textRect, Qt::AlignRight | Qt::AlignHCenter, noteString);
@@ -3567,6 +3575,24 @@ void PianoRoll::paintEvent(QPaintEvent * pe )
 			// draw extra white key
 			drawKey(topKey + 1, grid_line_y - m_keyLineHeight);
 		}
+		// LMMS UI Rework: subtle black-key lane shading.
+		// Draw before grid lines and notes to preserve their visibility.
+		{
+			const QColor darkLane(17, 23, 33, 115);
+			const int lastVisibleKey = qMax(0, topKey - m_pianoKeysVisible);
+
+			for (int key = topKey; key > lastVisibleKey; --key)
+			{
+				if (!Piano::isWhiteKey(key))
+				{
+					const int laneY = yCoordOfKey(key);
+					p.fillRect(m_whiteKeyWidth, laneY,
+						width() - m_whiteKeyWidth,
+						m_keyLineHeight, darkLane);
+				}
+			}
+		}
+
 		// loop through visible keys
 		const int lastKey = qMax(0, topKey - m_pianoKeysVisible);
 		for (int key = topKey; key > lastKey; --key)
@@ -5393,6 +5419,39 @@ PianoRollWindow::PianoRollWindow() :
 	m_snapComboBox->setModel(&m_editor->m_snapModel);
 	m_snapComboBox->setFixedSize(96, ComboBox::DEFAULT_HEIGHT);
 	m_snapComboBox->setToolTip(tr("Snap mode"));
+
+	// LMMS UI Rework: modern Piano Roll toolbar dropdown styling.
+	const QString pianoRollComboStyle = QStringLiteral(R"(
+		ComboBox, QComboBox {
+			background-color: #252C37;
+			color: #E0E7F0;
+			border: 1px solid #3C4B60;
+			border-radius: 5px;
+			padding: 2px 6px;
+			min-height: 22px;
+		}
+		ComboBox:hover, QComboBox:hover {
+			border-color: #5689C6;
+			background-color: #2D3746;
+		}
+		ComboBox:focus, QComboBox:focus {
+			border-color: #619FE8;
+		}
+	)");
+
+	for (auto* combo : {
+		m_zoomingComboBox,
+		m_zoomingYComboBox,
+		m_quantizeComboBox,
+		m_noteLenComboBox,
+		m_keyComboBox,
+		m_scaleComboBox,
+		m_chordComboBox,
+		m_snapComboBox
+	})
+	{
+		combo->setStyleSheet(pianoRollComboStyle);
+	}
 
 	// -- Clear ghost MIDI clip button
 	m_clearGhostButton = new QPushButton( m_toolBar );

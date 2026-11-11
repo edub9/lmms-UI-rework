@@ -65,6 +65,16 @@ TrackView::TrackView(Track* track, TrackContainerView* tcv)
 
 	m_trackSettingsWidget.setAutoFillBackground( true );
 
+	// LMMS UI Rework: cohesive dark track-header surface.
+	m_trackSettingsWidget.setObjectName("lmmsModernTrackSettings");
+	m_trackSettingsWidget.setStyleSheet(QStringLiteral(R"(
+		QWidget#lmmsModernTrackSettings {
+			background-color: #293341;
+			border-right: 1px solid #46576B;
+			border-bottom: 1px solid #202833;
+		}
+	)"));
+
 	auto layout = new QHBoxLayout(this);
 	layout->setContentsMargins(0, 0, 0, 0);
 	layout->setSpacing( 0 );

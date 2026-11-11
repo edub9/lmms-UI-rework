@@ -95,6 +95,31 @@ TrackOperationsWidget::TrackOperationsWidget(TrackView* parent)
 	m_soloBtn->setToolTip(tr("Solo"));
 	m_soloBtn->setObjectName("btn-solo");
 
+	// LMMS UI Rework: modern DAW track-control styling.
+	operationsWidget->setObjectName("lmmsModernTrackControls");
+	operationsWidget->setStyleSheet(QStringLiteral(R"(
+		QWidget#lmmsModernTrackControls {
+			background-color: #293341;
+			border: none;
+		}
+		QWidget#lmmsModernTrackControls QPushButton {
+			background-color: #394656;
+			color: #DCE6F2;
+			border: 1px solid #45566B;
+			border-radius: 5px;
+			padding: 2px;
+		}
+		QWidget#lmmsModernTrackControls QPushButton:hover {
+			background-color: #455A73;
+			border-color: #6599D1;
+		}
+		QWidget#lmmsModernTrackControls QPushButton:checked {
+			background-color: #346DA9;
+			border-color: #75B5F0;
+			color: #FFFFFF;
+		}
+	)"));
+
 	operationsLayout->addWidget(m_trackOps);
 	operationsLayout->addWidget(m_muteBtn);
 	operationsLayout->addWidget(m_soloBtn);

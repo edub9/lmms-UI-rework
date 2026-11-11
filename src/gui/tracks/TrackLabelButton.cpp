@@ -51,6 +51,29 @@ TrackLabelButton::TrackLabelButton( TrackView * _tv, QWidget * _parent ) :
 	setCursor(Qt::PointingHandCursor);
 	setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
 
+	// LMMS UI Rework: modern track-name presentation.
+	setObjectName("lmmsModernTrackLabel");
+	setStyleSheet(QStringLiteral(R"(
+		QToolButton#lmmsModernTrackLabel {
+			background-color: #303C4B;
+			color: #E5EDF7;
+			border: 1px solid #405166;
+			border-radius: 5px;
+			padding-left: 5px;
+			font-weight: 600;
+			text-align: left;
+		}
+		QToolButton#lmmsModernTrackLabel:hover {
+			background-color: #3B4D63;
+			border-color: #669BD3;
+		}
+		QToolButton#lmmsModernTrackLabel:checked {
+			background-color: #354D69;
+			border-color: #6EA8E4;
+			color: #FFFFFF;
+		}
+	)"));
+
 	m_renameLineEdit = new TrackRenameLineEdit( this );
 	m_renameLineEdit->hide();
 	

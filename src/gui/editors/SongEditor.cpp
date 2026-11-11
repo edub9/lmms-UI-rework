@@ -973,10 +973,10 @@ SongEditorWindow::SongEditorWindow(Song* song) :
 	editActionsToolBar->addAction( m_knifeModeAction );
 	editActionsToolBar->addAction( m_selectModeAction );
 
-	DropToolBar *timeLineToolBar = addDropToolBarToTop(tr("Timeline controls"));
+	DropToolBar *timeLineToolBar = editActionsToolBar;
 	m_editor->m_timeLine->addToolButtons(timeLineToolBar);
 
-	DropToolBar *insertActionsToolBar = addDropToolBarToTop(tr("Bar insert controls"));
+	DropToolBar *insertActionsToolBar = editActionsToolBar;
 	m_insertBarAction = new QAction(embed::getIconPixmap("insert_bar"), tr("Insert bar"), this);
 	m_removeBarAction = new QAction(embed::getIconPixmap("remove_bar"), tr("Remove bar"), this);
 	insertActionsToolBar->addAction( m_insertBarAction );
@@ -1003,7 +1003,7 @@ SongEditorWindow::SongEditorWindow(Song* song) :
 	zoomToolBar->addWidget( zoom_lbl );
 	zoomToolBar->addWidget(m_zoomingSlider);
 
-	DropToolBar *snapToolBar = addDropToolBarToTop(tr("Snap controls"));
+	DropToolBar *snapToolBar = zoomToolBar;
 	auto snap_lbl = new QLabel(m_toolBar);
 	snap_lbl->setPixmap( embed::getIconPixmap( "quantize" ) );
 
