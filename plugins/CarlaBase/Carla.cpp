@@ -622,16 +622,15 @@ CarlaInstrumentView::CarlaInstrumentView(CarlaInstrument* const instrument, QWid
     l->setSpacing(3);
     l->setAlignment(Qt::AlignTop);
 
-    // Show GUI button
-    m_toggleUIButton = new QPushButton( tr( "Show GUI" ), this );
+    // Carla’s rack opens the plugin database through its Add Plugin action.
+    m_toggleUIButton = new QPushButton(tr("Plugin Manager"), this);
     m_toggleUIButton->setCheckable( true );
     m_toggleUIButton->setChecked( false );
     m_toggleUIButton->setIcon( embed::getIconPixmap( "zoom" ) );
     m_toggleUIButton->setFont(adjustedToPixelSize(m_toggleUIButton->font(), SMALL_FONT_SIZE));
-    connect( m_toggleUIButton, SIGNAL( clicked(bool) ), this, SLOT( toggleUI( bool ) ) );
 
     m_toggleUIButton->setToolTip(
-            tr("Click here to show or hide the graphical user interface (GUI) of Carla."));
+            tr("Open Carla and choose Add Plugin to scan, search, and load VST3 instruments and effects."));
 
     // Open params sub window button
     m_toggleParamsWindowButton = new QPushButton(tr("Params"), this);
