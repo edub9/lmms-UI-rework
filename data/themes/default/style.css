@@ -1210,3 +1210,48 @@ lmms--gui--LmmsPalette {
 	qproperty-highlight: #262b30;
 	qproperty-highlightedText: #d1d8e4;
 }
+
+
+/*
+ * LMMS UI Rework — shared dark-theme foundation (phase 1)
+ * Deliberately limited to standard Qt controls and the LMMS palette.
+ * Custom-drawn Song Editor, FX Mixer and Piano Roll widgets will be
+ * migrated separately after visual and interaction testing.
+ */
+QMenu {
+    background-color: #242a32;
+    color: #dce4ee;
+    border: 1px solid #394453;
+}
+QMenu::item:selected {
+    background-color: #304b68;
+    color: #f5f8fc;
+}
+QLineEdit {
+    background-color: #1b2027;
+    color: #e3eaf3;
+    border: 1px solid #424d5a;
+    border-radius: 3px;
+    selection-background-color: #356eaa;
+}
+QLineEdit:focus {
+    border: 1px solid #4e8ecb;
+}
+QToolButton:hover {
+    background-color: #354354;
+}
+QToolButton:checked {
+    background-color: #31577b;
+}
+lmms--gui--LmmsPalette {
+    qproperty-background: #252b33;
+    qproperty-windowText: #dce4ee;
+    qproperty-base: #1b2027;
+    qproperty-text: #dce4ee;
+    qproperty-button: #343e4a;
+    qproperty-shadow: rgb(0, 0, 0);
+    qproperty-buttonText: #dce4ee;
+    qproperty-brightText: #ffffff;
+    qproperty-highlight: #356eaa;
+    qproperty-highlightedText: #ffffff;
+}
