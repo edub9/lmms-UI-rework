@@ -1,15 +1,16 @@
+/* Modern dark UI palette: first-pass visual refresh; existing LMMS widget layout retained. */
 /********************
  * LMMS style sheet *
  ********************/
 
 /* most foreground text items */
 QLabel, QTreeWidget, QListWidget, QGroupBox, QMenuBar, QCheckBox {
-	color: #d1d8e4;
+	color: #e0e6f1;
 }
 
 QTreeView {
 	outline: none;
-	alternate-background-color: #111314;
+	alternate-background-color: #151922;
 }
 
 QTreeWidget::item {
@@ -24,7 +25,7 @@ QTreeWidget::branch:hover {
 
 QTreeWidget::item:selected,
 QTreeWidget::branch:selected {
-	background-color: #17793b;
+	background-color: #236e83;
 	padding-left: 0px;
 }
 
@@ -37,7 +38,7 @@ QTreeView::branch:has-children:closed {
 }
 
 QMdiArea {
-	background-color: #111314;
+	background-color: #151922;
 }
 
 lmms--gui--FileBrowser QCheckBox
@@ -53,7 +54,7 @@ lmms--gui--Knob {
 
 lmms--gui--AutomationEditor {
 	color: #ffffff;
-	background-color: #141616;
+	background-color: #171c26;
 	qproperty-backgroundShade: rgba(255, 255, 255, 15);
 	qproperty-nodeInValueColor: rgba(103, 73, 194, 150);
 	qproperty-nodeOutValueColor: rgba(125, 40, 40, 150);
@@ -61,11 +62,11 @@ lmms--gui--AutomationEditor {
 	qproperty-crossColor: rgba(215, 210, 254, 150);
 	/* Grid colors */
 	qproperty-lineColor: #292929;
-	qproperty-beatLineColor: #4a3bba;
-	qproperty-barLineColor: #8173fe;
+	qproperty-beatLineColor: #455aa5;
+	qproperty-barLineColor: #748ef7;
 
 	qproperty-graphColor: rgba(69,42,153,180);
-	qproperty-scaleColor: #262b30;
+	qproperty-scaleColor: #252e3b;
 	qproperty-ghostNoteColor: rgba(248, 248, 255, 125);
 	qproperty-detuningNoteColor: rgba(248, 11, 11, 125);
 	qproperty-ghostSampleColor: rgba(125, 125, 125, 125);
@@ -87,26 +88,26 @@ QLineEdit:read-only {
 /* text box when it wants text */
 
 QLineEdit:focus {
-	border: 1px solid #0bd556;
+	border: 1px solid #35c7b1;
 }
 
 /* Set color and selection background color for various inputs.
    SpinBoxes are used in QInputDialogs */
 
 QTextEdit, QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {
-	color: #d1d8e4;
-	selection-background-color: #17793b;
+	color: #e0e6f1;
+	selection-background-color: #236e83;
 }
 
 QToolTip {
 	border-radius: 4px;
 	background: #040506;
-	color: #d1d8e4;
+	color: #e0e6f1;
 }
 
 lmms--gui--TextFloat, lmms--gui--SimpleTextFloat {
 	background: #040506;
-	color: #d1d8e4;
+	color: #e0e6f1;
 }
 
 
@@ -117,31 +118,31 @@ QSplashScreen QLabel {
 
 
 QMenu {
-	border-top: 2px solid #08993E;
-	background-color: #15191c;
+	border-top: 2px solid #35c7b1;
+	background-color: #1c2230;
 }
 
 QMenu::separator {
 	height: 1.0px;
-	background: #323940;
+	background: #394458;
 	margin-left: 0x;
 	margin-right: 0px;
 }
 
 QMenu::item {
-	color: #d1d8e4;
+	color: #e0e6f1;
 	padding: 2px 35px 2px 23px;
 	margin: 3px 0px 3px 0px;
 }
 
 QMenu::item:selected {
-	color: #d1d8e4;
+	color: #e0e6f1;
 	background-color: #21272b;
 }
 
 QMenu::item:disabled {
 	color: #515459;
-	background-color: #262b30;
+	background-color: #252e3b;
 	padding: 4px 32px 4px 20px;
 }
 
@@ -175,10 +176,10 @@ lmms--gui--PositionLine {
 }
 
 lmms--gui--PianoRoll {
-	background-color: #141616;
+	background-color: #171c26;
 	qproperty-backgroundShade: rgba(255, 255, 255, 10);
-	qproperty-noteModeColor: #0bd556;
-	qproperty-noteColor: #0bd556;
+	qproperty-noteModeColor: #35c7b1;
+	qproperty-noteColor: #35c7b1;
 	qproperty-stepNoteColor: #9b1313;
 	qproperty-currentStepNoteColor: rgb(245, 3, 139);
 	qproperty-noteTextColor: #ffffff;
@@ -189,7 +190,7 @@ lmms--gui--PianoRoll {
 	qproperty-ghostNoteTextColor: #ffffff;
 	qproperty-ghostNoteOpacity: 60;
 	qproperty-ghostNoteBorders: false;
-	qproperty-barColor: #078f3a;
+	qproperty-barColor: #249eab;
 	qproperty-markedSemitoneColor: rgba(255, 255, 255, 30);
 	qproperty-knifeCutLine: rgba(255, 0, 0, 255);
 	/* Piano keys */
@@ -213,12 +214,12 @@ lmms--gui--PianoRoll {
 
 	/* Text on the white piano keys */
 	qproperty-textColor: #000;
-	qproperty-textColorLight: #0bd556;
+	qproperty-textColorLight: #35c7b1;
 	qproperty-textShadow: #fff;
 }
 
 lmms--gui--TabWidget {
-	background-color: #262b30;
+	background-color: #252e3b;
 	qproperty-tabText: rgba(255, 255, 255, 180);
 	qproperty-tabTitleText: #fff;
 	qproperty-tabSelected: #1c4933;
@@ -228,7 +229,7 @@ lmms--gui--TabWidget {
 }
 
 lmms--gui--GroupBox {
-	background-color: #262b30;
+	background-color: #252e3b;
 }
 
 /* main toolbar oscilloscope - can have transparent bg now */
@@ -253,14 +254,14 @@ lmms--gui--CPULoadWidget {
 /* scrollbar: trough */
 
 QScrollBar:horizontal {
-	border-top: 3px solid #262b30;
-	background: #262b30;
+	border-top: 3px solid #252e3b;
+	background: #252e3b;
 	height: 12px;
 	margin: 0px 12px;
 }
 QScrollBar:vertical {
-	border-left: 3px solid #262b30;
-	background: #262b30;
+	border-left: 3px solid #252e3b;
+	background: #252e3b;
 	width: 12px;
 	margin: 12px 0px;
 }
@@ -310,7 +311,7 @@ QScrollBar::handle:vertical:pressed {
 }
 
 QScrollBar::handle:horizontal:disabled, QScrollBar::handle:vertical:disabled  {
-	background: #262b30;
+	background: #252e3b;
 	border-radius: 1px;
 	border: none;
 }
@@ -324,7 +325,7 @@ lmms--gui--EffectRackView QScrollBar::handle:vertical:disabled  {
 /* arrow buttons */
 
 QScrollBar::add-line, QScrollBar::sub-line {
-	background: #262b30;
+	background: #252e3b;
 	border-radius: 0px;
 	border: none;
 	subcontrol-origin: margin;
@@ -336,15 +337,15 @@ QScrollBar::add-line:vertical 		{ 	subcontrol-position: bottom; height: 12px;}
 QScrollBar::sub-line:vertical 		{ 	subcontrol-position: top; height: 12px;}
 
 QScrollBar::add-line:hover, QScrollBar::sub-line:hover {
-	background: #262b30;
+	background: #252e3b;
 }
 
 QScrollBar::add-line:pressed, QScrollBar::sub-line:pressed {
-	background: #262b30;
+	background: #252e3b;
 }
 
 QScrollBar::add-line:disabled, QScrollBar::sub-line:disabled {
-	background: #262b30;
+	background: #252e3b;
 }
 
 /* arrow button arrows */
@@ -379,7 +380,7 @@ lmms--gui--EffectRackView QScrollBar::down-arrow:vertical:disabled { background-
 /* background for song editor and pattern editor */
 
 lmms--gui--TrackContainerView QFrame {
-	background-color: #262b30;
+	background-color: #252e3b;
 }
 
 /* background for track controls */
@@ -389,7 +390,7 @@ lmms--gui--TrackView > QWidget {
 
 
 QPushButton#btn {
-	color: #d1d8e4;
+	color: #e0e6f1;
 	padding: 2 4;
 	border: 1 solid #000;
 	border-radius: 3;
@@ -573,7 +574,7 @@ lmms--gui--AutomatableSlider::handle:horizontal {
 /* window that shows up when you add effects */
 
 lmms--gui--EffectSelectDialog QScrollArea {
-	background: #262b30;
+	background: #252e3b;
 }
 
 lmms--gui--SetupDialog QScrollArea {
@@ -583,7 +584,7 @@ lmms--gui--SetupDialog QScrollArea {
 /* the inner boxes in LADSPA effect windows */
 
 lmms--gui--EffectControlDialog QGroupBox {
-	background: #262b30;
+	background: #252e3b;
 	margin-top: 1ex;
 	padding: 10px 2px 1px;
 	border-radius: 4px;
@@ -595,8 +596,8 @@ lmms--gui--EffectControlDialog QGroupBox {
 lmms--gui--EffectControlDialog QGroupBox::title {
 	subcontrol-origin: margin;
 	subcontrol-position: top center;
-	background: #262b30;
-	color: #d1d8e4;
+	background: #252e3b;
+	color: #e0e6f1;
 	border-radius: 2px;
 	border: none;
 	padding: 2px 1px;
@@ -652,7 +653,7 @@ QToolButton:pressed {
 	border-top: 1px solid #778394;
 	border-bottom: 1px solid #1e2226;
 	border-radius: 2px;
-	background: qlineargradient(spread:reflect, x1:0, y1:0, x2:0, y2:1, stop:0 #636c7a, stop:1 #262b30);
+	background: qlineargradient(spread:reflect, x1:0, y1:0, x2:0, y2:1, stop:0 #636c7a, stop:1 #252e3b);
 }
 
 QToolButton:checked {
@@ -751,14 +752,14 @@ lmms--gui--PluginDescWidget {
 	border-bottom: 1px solid #101314;
 	border-radius: 2px;
 	background-color: qlineargradient(spread:reflect, x1:0, y1:0, x2:0, y2:1, stop:0 #2E343B, stop:1 #1E2326);
-	color: #d1d8e4;
+	color: #e0e6f1;
 	font-weight: bold;
 	margin: 0px;
 }
 
 lmms--gui--PluginDescWidget:hover {
 	background: qlineargradient(spread:reflect, x1:0, y1:0, x2:0, y2:1, stop:0 #7C8799, stop:1 #343840);
-	color: #d1d8e4;
+	color: #e0e6f1;
 }
 
 /* piano widget */
@@ -777,7 +778,7 @@ lmms--gui--ControllerRackView QPushButton {
 
 lmms--gui--MixerChannelView {
 	background: #14161A;
-	color: #d1d8e4;
+	color: #e0e6f1;
 	qproperty-backgroundActive: #3B424A;
 	qproperty-strokeOuterActive: #262B30;
 	qproperty-strokeOuterInactive: #262B30;
@@ -903,7 +904,7 @@ lmms--gui--SubWindow {
 
 /* Subwindow title text */
 lmms--gui--SubWindow > QLabel {
-	color: #d1d8e4;
+	color: #e0e6f1;
 	font-size: 12px;
 	font-style: normal;
 }
@@ -1199,14 +1200,14 @@ lmms--gui--BarModelEditor {
 /* palette information  */
 
 lmms--gui--LmmsPalette {
-	qproperty-background: #262b30;
+	qproperty-background: #252e3b;
 	qproperty-windowText: #1de276;
 	qproperty-base: #101213;
-	qproperty-text: #d1d8e4;
+	qproperty-text: #e0e6f1;
 	qproperty-button: #3f4750;
 	qproperty-shadow: rgb(0,0,0);
-	qproperty-buttonText: #d1d8e4;
-	qproperty-brightText: #d1d8e4;
-	qproperty-highlight: #262b30;
-	qproperty-highlightedText: #d1d8e4;
+	qproperty-buttonText: #e0e6f1;
+	qproperty-brightText: #e0e6f1;
+	qproperty-highlight: #252e3b;
+	qproperty-highlightedText: #e0e6f1;
 }
